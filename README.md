@@ -120,8 +120,6 @@ Criar `.env` baseado em `.env.example`:
 ```
 DATABASE_URL=
 JWT_SECRET=
-ADMIN_EMAIL=
-ADMIN_PASSWORD=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 ```
