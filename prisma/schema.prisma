@@ -1,0 +1,94 @@
+datasource db {
+  provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int     @id @default(autoincrement())
+  email     String  @unique
+  password  String
+  name      String?
+  role      UserRole    @default(USER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  companyUsers CompanyUser[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum CompanyRole {
+  OWNER        
+  COLLABORATOR 
+}
+
+model Company {
+  id        Int     @id @default(autoincrement())
+  name      String
+  cnpj      String  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  companyUsers  CompanyUser[]
+  subscriptions Subscription[]
+
+  @@map("companies")
+}
+
+model CompanyUser {
+  id             Int    @id @default(autoincrement())
+  companyId      Int
+  userId         Int
+  roleInCompany  CompanyRole @default(COLLABORATOR) 
+  isActive      Boolean     @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, userId])
+  @@map("company_users")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+enum PlanType {
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
+model Subscription {
+  id                    Int     @id @default(autoincrement())
+  companyId             Int     @unique
+  planId                PlanType
+  status                SubscriptionStatus @default(INACTIVE)
+  stripeCustomerId      String?
+  stripeSubscriptionId  String?
+  currentPeriodStart    DateTime?
+  currentPeriodEnd      DateTime?
+  trialEndsAt          DateTime?
+  canceledAt            DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
